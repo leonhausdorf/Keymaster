@@ -69,21 +69,24 @@ func InitDB(dbType, dsn string) error {
 				return fmt.Errorf("failed to enable WAL mode for sqlite: %w", err)
 			}
 			driver, err = sqlite.WithInstance(db, &sqlite.Config{})
-			store = &SqliteStore{db: db}
+			baseStore := NewBaseStore(db, SqliteDialect{})
+			store = &SqliteStore{BaseStore: baseStore}
 		}
 	case "postgres":
 		// The pgx driver is imported in postgres.go
 		db, err = sql.Open("pgx", dsn)
 		if err == nil {
 			driver, err = postgres.WithInstance(db, &postgres.Config{})
-			store = &PostgresStore{db: db}
+			baseStore := NewBaseStore(db, PostgresDialect{})
+			store = &PostgresStore{BaseStore: baseStore}
 		}
 	case "mysql":
 		// The mysql driver is imported in mysql.go
 		db, err = sql.Open("mysql", dsn)
 		if err == nil {
 			driver, err = mysql.WithInstance(db, &mysql.Config{})
-			store = &MySQLStore{db: db}
+			baseStore := NewBaseStore(db, MySQLDialect{})
+			store = &MySQLStore{BaseStore: baseStore}
 		}
 	default:
 		return fmt.Errorf("unsupported database type: '%s'", dbType)
